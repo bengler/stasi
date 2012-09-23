@@ -1,0 +1,50 @@
+#!/usr/bin/env ruby
+require "bundler"
+Bundler.require
+require 'terminal-table/import'
+require "./lib/timeline"
+require "./lib/colorize"
+
+pebble, url = ARGV
+unless pebble or url
+  puts "Usage: pebleak <pebble> <url>"
+  puts "Example: pebleak grove http://grove.dev/api/grove/v1/posts/post.*:*"
+  exit(0)
+end
+
+worker_pids = `ps ax | grep 'unicorn worker' | grep -v grep | grep #{pebble}`.split("\n").map { |l| l.strip.split(/\s+/).first }
+
+if worker_pids.empty?
+  puts "No worker process found for #{pebble}"
+  exit(0)
+end
+
+print "\033[2J"
+print "\033[0;0f"
+
+timelines = worker_pids.map { |pid| Timeline.new(pid, "#{pebble.capitalize} worker ##{pid}") }
+
+puts "Unicorn worker pids: #{worker_pids.join(", ")}"
+
+def term_replace(s)
+  print "\033[2;0f"
+  puts s
+end
+
+100000.times do |i|
+  HTTPClient.new.get_async url
+
+  next unless i % 10 == 0
+  timelines.each(&:probe)
+
+  table = table do |v|
+    v.title = "Request #{i}"
+    v.headings = timelines.map(&:name)
+    v << timelines.map {|t| if t.trend == :growing then t.trend.to_s.red else t.trend.to_s.green end }
+    v << :separator
+    v << timelines.map {|t| "#{t.last.usage.round(2)}MB" }
+  end
+  term_replace table
+end
+
+exit(0)
