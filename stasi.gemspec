@@ -2,11 +2,11 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 Gem::Specification.new do |s|
-  s.name        = "pebleak"
+  s.name        = "stasi"
   s.version     = "0.0.1"
   s.authors     = ["Bjørge Næss"]
   s.email       = ["bjoerge@bengler.no"]
-  s.homepage    = "https://github.com/bengler/pebleak"
+  s.homepage    = "https://github.com/bengler/stasi"
   s.summary     = %q{A small gem to detect memory leak in a pebble}
   s.description = %q{A small gem to detect memory leak in a pebble}
 

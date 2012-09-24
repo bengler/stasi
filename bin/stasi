@@ -8,8 +8,8 @@ require 'httpclient'
 
 pebble, url = ARGV
 unless pebble or url
-  puts "Usage: pebleak <pebble> <url>"
-  puts "Example: pebleak grove http://grove.dev/api/grove/v1/posts/post.*:*"
+  puts "Usage: stasi <pebble> <url>"
+  puts "Example: stasi grove http://grove.dev/api/grove/v1/posts/post.*:*"
   exit(0)
 end
 
