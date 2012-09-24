@@ -1,4 +1,3 @@
-
 # A command line tool to monitor memory usage of a Pebble under heavy load
 
 # Getting started
@@ -11,5 +10,5 @@
 
 # Future improvements / ideas
 
-    - Better separation of concerns (i.e. pid monitoring and issuing endpoint requests should be in separate places)
-    - Possibility to specify a command to run (and monitor the pid of that command)
+- Better separation of concerns (i.e. pid monitoring and issuing endpoint requests should be in separate places)
+- Possibility to specify a command to run (and monitor the pid of that command)
