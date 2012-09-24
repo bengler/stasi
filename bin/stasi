@@ -64,9 +64,9 @@ sleep 0.5
 1000000.times do |i|
   break if interrupted
   start = Time.new
-  HTTPClient.new.get url
+  status = HTTPClient.get(url).status
   duration = Time.new - start
-  request_counter.text(0, 0, " Request  ##{i}")
+  request_counter.text(0, 0, " Request  ##{i} / status #{status.to_s.send((200...299).include?(status.to_i) ? :green : :red )}")
   request_counter.text(0, 1, "  Url:    #{url}")
   request_counter.text(0, 2, "  Timing: #{duration.round(2)}s / #{(1/duration).round(2)} req/s "+' '*10)
   request_counter.paint(graphics)
