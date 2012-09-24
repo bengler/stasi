@@ -12,7 +12,7 @@ class Prober
 
   def probe
     @prev_usage = @usage
-    @usage = (`ps -o rss= -p #{pid}`.to_f/1024.0)
+    @usage = (`command ps -o rss= -p #{pid}`.to_f/1024.0)
     if @usage > @max_usage
       @max_usage = @usage
     end

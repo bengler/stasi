@@ -1,9 +1,9 @@
 #!/usr/bin/env ruby
 #encoding: UTF-8
-require 'rubygems'
-require 'ostruct'
-require './lib/chart'
-require './lib/prober'
+require 'bundler'
+Bundler.require
+require 'chart'
+require 'prober'
 require 'httpclient'
 
 pebble, url = ARGV
@@ -13,7 +13,7 @@ unless pebble or url
   exit(0)
 end
 
-worker_pids = `ps ax | grep 'unicorn worker' | grep -v grep | grep #{pebble}`.split("\n").map { |l| l.strip.split(/\s+/).first }
+worker_pids = `command ps ax | grep 'unicorn worker' | grep -v grep | grep #{pebble}`.split("\n").map { |l| l.strip.split(/\s+/).first }
 
 if worker_pids.empty?
   puts "No worker process found for #{pebble}"
