@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
-require "bundler"
-Bundler.require
-require 'terminal-table/import'
-require "./lib/timeline"
-require "./lib/colorize"
+#encoding: UTF-8
+require 'rubygems'
+require 'ostruct'
+require './lib/chart'
+require './lib/prober'
+require 'httpclient'
 
 pebble, url = ARGV
 unless pebble or url
@@ -19,32 +20,62 @@ if worker_pids.empty?
   exit(0)
 end
 
-print "\033[2J"
-print "\033[0;0f"
+interrupted = false
+trap("INT") { interrupted = true }
 
-timelines = worker_pids.map { |pid| Timeline.new(pid, "#{pebble.capitalize} worker ##{pid}") }
+graphics = Terminal::TerminalGraphics.new(0, 0)
+graphics.prepare
 
-puts "Unicorn worker pids: #{worker_pids.join(", ")}"
+worker_pids.each_with_index do |pid, i|
+  Thread.new do
 
-def term_replace(s)
-  print "\033[2;0f"
-  puts s
-end
+    offset_left = if i % 2 == 0 then 1 else 53 end
+    offset_top = if (i/2) == 0 then 7 else 18+07 end
 
-100000.times do |i|
-  HTTPClient.new.get_async url
+    title = Terminal::Layer.new(height: 1, width: 40, top: offset_top , left: offset_left)
+    title.text(0, 0, ("-"*50).green)
+    title.text(8, 0, " #{pebble.capitalize} worker #{i} (pid ##{pid}) ".green)
+    title.paint(graphics)
 
-  next unless i % 10 == 0
-  timelines.each(&:probe)
+    graph = Terminal::Layer.new(height: 15, width: 40, top: offset_top+1, left: offset_left, opaque: true)
+    current_usage = Terminal::Layer.new(height: 15, width: 10, top: offset_top+1, left: offset_left+40)
 
-  table = table do |v|
-    v.title = "Request #{i}"
-    v.headings = timelines.map(&:name)
-    v << timelines.map {|t| if t.trend == :growing then t.trend.to_s.red else t.trend.to_s.green end }
-    v << :separator
-    v << timelines.map {|t| "#{t.last.usage.round(2)}MB" }
+    prober = Prober.new(pid)
+
+    while true
+      prober.probe
+      graph.move_left
+      top = 15 - ((prober.usage) % 15)
+      graph.text(39, top, "·".cyan)
+      current_usage.text(1, top, "#{prober.usage.round(2)}MB")
+      graph.paint(graphics)
+      current_usage.paint(graphics)
+      sleep 0.5
+      current_usage.text(1, top, ' '*10)
+    end
   end
-  term_replace table
 end
 
+title = Terminal::Layer.new(top: 1, height: 1, width: 80) do |layer|
+  layer.text(1, 0, "Worker pids: #{worker_pids.join(", ")}")
+end
+
+request_counter = Terminal::Layer.new(height: 3, width: 80, top: 3)
+title.paint(graphics)
+
+sleep 0.5
+1000000.times do |i|
+  break if interrupted
+  start = Time.new
+  HTTPClient.new.get url
+  duration = Time.new - start
+  request_counter.text(0, 0, " Request  ##{i}")
+  request_counter.text(0, 1, "  Url:    #{url}")
+  request_counter.text(0, 2, "  Timing: #{duration.round(2)}s / #{(1/duration).round(2)} req/s "+' '*10)
+  request_counter.paint(graphics)
+end
+
+graphics.reset
+
+puts "We'll meet again!"
 exit(0)

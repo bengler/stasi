@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
 
   s.add_runtime_dependency "httpclient"
-  s.add_runtime_dependency "terminal-table"
+  s.add_runtime_dependency "bundler"
+  s.add_runtime_dependency "term-ansicolor"
 
 end
